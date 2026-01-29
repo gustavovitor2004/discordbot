@@ -21,12 +21,21 @@ A simple Discord bot that monitors a forum channel and mentions specific users b
 3. Create .env file:
    TOKEN=your_discord_bot_token_here
 
+(Important: Never commit your .env file or real token to GitHub! Add .env to .gitignore.)
+
 4. Run with PM2:Bash
    pm2 start index.js --name discordbot
    pm2 save
 
+To restart later:
+   pm2 restart discordbot
+
 Requirements
-Node.js v18+
+
+Node.js v18 or higher
 discord.js v14+
-PM2 (for production)
-LicenseMIT
+PM2 (for production and auto-start)
+
+License
+MIT License
+Feel free to fork, modify, and use!
