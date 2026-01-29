@@ -28,12 +28,24 @@ A simple Discord bot that monitors a forum channel and notifies specific users b
    git clone https://github.com/gustavovitor2004/discordbot.git
    cd discordbot
 
-Install dependenciesBashnpm install
-Create a .env file in the root folderenvTOKEN=your_discord_bot_token_hereImportant: Never commit your .env file or real token to GitHub!
-Make sure .env is listed in .gitignore.
-Run the bot with PM2 (recommended for production)Bashpm2 start index.js --name discordbot
-pm2 saveTo restart later:Bashpm2 restart discordbot
+2. **Install dependencies:**
+ - npm install
 
+3. **Create a .env file:**
+ - Create a file named .env in the root folder and add your token:
+ - TOKEN=your_discord_bot_token_here
+   
+**Important!!**
+Never commit your .env file or real token to GitHub!
+Make sure .env is listed in .gitignore.
+
+4. **Run the bot with PM2 (recommended for production):**
+  - pm2 start index.js --name discordbot
+  - pm2 save
+
+To restart later (anytime you need):
+  - pm2 restart discordbot
+  
 Requirements
 
 Node.js v18 or higher
