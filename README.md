@@ -14,3 +14,19 @@ A simple Discord bot that monitors a forum channel and mentions specific users b
    ```bash
    git clone https://github.com/gustavovitor2004/discordbot.git
    cd discordbot
+   
+2. Install dependencies:
+   npm install
+
+3. Create .env file:
+   TOKEN=your_discord_bot_token_here
+
+4. Run with PM2:Bash
+   pm2 start index.js --name discordbot
+   pm2 save
+
+Requirements
+Node.js v18+
+discord.js v14+
+PM2 (for production)
+LicenseMIT
