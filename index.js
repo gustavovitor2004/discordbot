@@ -28,13 +28,13 @@ const client = new Client({
 });
 
 // Config
-const TOKEN = 'MTQ2NjE2NDI0NDIyNjY0MjAxMw.GGisL9.UEWHAGVyLhw9KcsM_nMEpVLYI_sbu-wUkQiEKU';
-const CLIENT_ID = '1466164244226642013';
-const GUILD_ID = '1438264235233644546';
+const TOKEN = 'BOT TOKEN';
+const CLIENT_ID = 'CLIENT ID';
+const GUILD_ID = 'GUILD ID';
 
 const tagMentions = {
-  "Site": "275359225545359360",
-  "Server": "395387932372107264"
+  "Site": "ID PROFILE",
+  "Server": "ID PROFILE"
 };
 
 const restartFile = path.join(__dirname, 'restart.json');
