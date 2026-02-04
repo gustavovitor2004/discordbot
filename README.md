@@ -10,8 +10,8 @@ A simple Discord bot that monitors a forum channel and notifies specific users b
 
 - Automatically detects new forum threads with tags
 - Mentions designated users:
-  - `<@275359225545359360>` for **Site**
-  - `<@395387932372107264>` for **Server**
+  - `<@ID PROFILE>` for **Site**
+  - `<@ID PROFILE>` for **Server**
 - Slash commands:
   - `/ping` — Check bot latency
   - `/status` — Show bot status (uptime, memory, latency)
