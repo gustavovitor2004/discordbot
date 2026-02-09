@@ -25,17 +25,14 @@ const client = new Client({
   ]
 });
 
-// Agora sim, importe e execute commands.js passando o client já criado
-const { commands, handleInteraction } = require('./commands')(client);
-
-// Config (o resto continua igual)
-const TOKEN = 'MTQ2NjE2NDI0NDIyNjY0MjAxMw.G66CkW.wsBrZkq180S4cbmlR_w-iPi6EChZjfCX1Lkkcc';
-const CLIENT_ID = '1466164244226642013';
-const GUILD_ID = '1438264235233644546';
+// Config
+const TOKEN = 'BOT TOKEN';
+const CLIENT_ID = 'CLIENT ID';
+const GUILD_ID = 'GUILD ID';
 
 const tagMentions = {
-  "Site": "275359225545359360",
-  "Server": "395387932372107264"
+  "Site": "ID PROFILE",
+  "Server": "ID PROFILE"
 };
 
 const restartFile = path.join(__dirname, 'restart.json');
