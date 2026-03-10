@@ -1,3 +1,4 @@
+require('dotenv').config();
 const {
   Client,
   GatewayIntentBits,
@@ -5,12 +6,13 @@ const {
   REST,
   Routes,
   ChannelType,
-  EmbedBuilder  // adicione isso aqui se ainda não tiver
+  EmbedBuilder
 } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
+const config = require('./config.json');
 
-// Crie o client ANTES de importar commands.js
+// Create client
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -25,22 +27,29 @@ const client = new Client({
   ]
 });
 
-// Config
-const TOKEN = 'BOT TOKEN';
-const CLIENT_ID = 'CLIENT ID';
-const GUILD_ID = 'GUILD ID';
+// Load commands module
+const { commands, handleInteraction } = require('./commands')(client);
 
-const tagMentions = {
-  "Site": "ID PROFILE",
-  "Server": "ID PROFILE"
-};
+// Token from .env
+const TOKEN = process.env.DISCORD_TOKEN;
+const CLIENT_ID = config.clientId;
+const GUILD_ID = config.guildId;
 
 const restartFile = path.join(__dirname, 'restart.json');
 
-// Logs e mensagem pós-restart
+// Validate forum channel (only react to the correct guild)
+function isValidForumThread(thread) {
+  const forum = thread.parent;
+  if (!forum || forum.type !== ChannelType.GuildForum) return false;
+  if (thread.guildId !== GUILD_ID) return false;
+  return true;
+}
+
+// Ready event
 client.on('ready', () => {
   console.log(`[READY] Bot online as ${client.user.tag} at ${new Date().toLocaleString('en-US')}`);
 
+  // Post-restart message
   if (fs.existsSync(restartFile)) {
     try {
       const data = JSON.parse(fs.readFileSync(restartFile, 'utf8'));
@@ -65,7 +74,7 @@ client.on('ready', () => {
 client.on('error', err => console.error('[ERROR]', err));
 client.on('warn', warn => console.warn('[WARN]', warn));
 
-// Registro dos comandos
+// Register slash commands
 const rest = new REST({ version: '10' }).setToken(TOKEN);
 
 (async () => {
@@ -77,23 +86,24 @@ const rest = new REST({ version: '10' }).setToken(TOKEN);
   }
 })();
 
-// Handler de interações
+// Interaction handler
 client.on('interactionCreate', async (interaction) => {
   await handleInteraction(interaction);
 });
 
-// Forum thread creation (mantido igual)
+// Forum thread creation
 client.on('threadCreate', async (thread, newlyCreated) => {
   if (!newlyCreated) return;
 
   console.log(`[THREAD] New thread: ${thread.name} (ID: ${thread.id})`);
 
-  const forum = thread.parent;
-  if (!forum || forum.type !== ChannelType.GuildForum) {
-    console.log('[THREAD] Not a forum channel');
+  // Validate: only react to the correct guild's forum channels
+  if (!isValidForumThread(thread)) {
+    console.log('[THREAD] Skipped — not a valid forum thread for this guild');
     return;
   }
 
+  const forum = thread.parent;
   const appliedTags = thread.appliedTags
     .map(id => forum.availableTags.find(t => t.id === id)?.name?.trim())
     .filter(Boolean);
@@ -101,9 +111,9 @@ client.on('threadCreate', async (thread, newlyCreated) => {
   console.log(`[TAGS] Detected: ${appliedTags.join(', ') || 'none'}`);
 
   for (const tag of appliedTags) {
-    if (tagMentions[tag]) {
-      const userId = tagMentions[tag];
-      console.log(`[MENTION] Tag ${tag} → <@${userId}>`);
+    if (config.tagMentions[tag]) {
+      const userId = config.tagMentions[tag];
+      console.log(`[MENTION] Tag "${tag}" → <@${userId}>`);
 
       await thread.send({
         content: `🔔 <@${userId}> new suggestion created for **${tag}**!`,
@@ -113,8 +123,13 @@ client.on('threadCreate', async (thread, newlyCreated) => {
   }
 });
 
-// Login retry
+// Login with retry
 function loginRetry() {
+  if (!TOKEN) {
+    console.error('[LOGIN] DISCORD_TOKEN is not set in .env file!');
+    process.exit(1);
+  }
+
   client.login(TOKEN).catch(err => {
     console.error('[LOGIN]', err.message);
     setTimeout(loginRetry, 10000);
