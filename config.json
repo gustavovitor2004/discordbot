@@ -1,15 +1,34 @@
 {
   "clientId": "1466164244226642013",
   "guildId": "1438264235233644546",
+  "channels": {
+    "welcome": "",
+    "rules": "",
+    "roles": "",
+    "generalChat": "",
+    "feedback": "",
+    "autoLog": "",
+    "showAchievements": ""
+  },
   "tagMentions": {
-    "Site": "275359225545359360",
-    "Server": "395387932372107264"
+    "Site": ["275359225545359360"],
+    "Server": ["395387932372107264"]
   },
   "cooldowns": {
     "ping": 3,
     "status": 5,
     "help": 5,
     "restart": 30,
-    "tags": 5
+    "tags": 5,
+    "welcome-info": 10,
+    "feedback": 60
+  },
+  "branding": {
+    "primaryColor": 5793266,
+    "successColor": 65280,
+    "errorColor": 16711680,
+    "warningColor": 16753920,
+    "siteUrl": "https://trophi.gg",
+    "tagline": "Track. Master. Achieve."
   }
 }
