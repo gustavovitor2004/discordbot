@@ -1,4 +1,4 @@
-const { EmbedBuilder } = require('discord.js');
+const { EmbedBuilder, MessageFlags } = require('discord.js');
 const config = require('../../config.json');
 
 const COLORS = {
@@ -40,12 +40,17 @@ function warningEmbed(title, interaction) {
 
 async function replyError(interaction, description) {
   const embed = errorEmbed('Error', interaction).setDescription(description);
-  const payload = { embeds: [embed], ephemeral: true };
+  const payload = { embeds: [embed], flags: MessageFlags.Ephemeral };
 
-  if (interaction.replied || interaction.deferred) {
-    return interaction.followUp(payload).catch(console.error);
+  try {
+    if (interaction.replied || interaction.deferred) {
+      return await interaction.followUp(payload);
+    }
+    return await interaction.reply(payload);
+  } catch (err) {
+    // Interaction may have expired (3s window) — log but don't throw.
+    console.error('[REPLY ERROR]', err.message);
   }
-  return interaction.reply(payload).catch(console.error);
 }
 
 module.exports = {

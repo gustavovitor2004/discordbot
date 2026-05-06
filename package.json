@@ -1,14 +1,28 @@
 {
   "name": "discordbot",
-  "version": "1.0.0",
-  "description": "",
+  "version": "1.1.0",
+  "description": "Official Discord bot for Trophi.gg — onboarding, feedback, forum routing, and structured logging.",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "engines": {
+    "node": ">=18"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js",
+    "pm2:start": "pm2 start index.js --name discordbot",
+    "pm2:restart": "pm2 restart discordbot",
+    "pm2:logs": "pm2 logs discordbot",
+    "test": "node -e \"require('./src/loader').loadCommands(require('path').resolve('src/commands'))\""
+  },
+  "keywords": [
+    "discord",
+    "bot",
+    "trophi",
+    "achievements",
+    "discord.js"
+  ],
+  "author": "gustavovitor2004",
+  "license": "MIT",
   "type": "commonjs",
   "dependencies": {
     "discord.js": "^14.25.1",

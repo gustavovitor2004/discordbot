@@ -1,5 +1,6 @@
 const cooldowns = require('../utils/cooldowns');
 const { replyError } = require('../utils/embeds');
+const config = require('../../config.json');
 
 module.exports = {
   name: 'interactionCreate',
@@ -7,25 +8,31 @@ module.exports = {
   async execute(interaction, ctx) {
     const { registry, logger } = ctx;
 
+    // Defense-in-depth: bot is single-guild scoped, refuse interactions from elsewhere.
+    if (interaction.guildId && interaction.guildId !== config.guildId) {
+      logger.warn('SECURITY', `Interaction from foreign guild ${interaction.guildId} blocked`);
+      return;
+    }
+
+    // --- Modal submissions ---------------------------------------------------
     if (interaction.isModalSubmit()) {
-      for (const cmd of registry.values()) {
-        if (typeof cmd.handleModal === 'function') {
-          const handled = await cmd.handleModal(interaction, ctx).catch(err => {
-            logger.error('MODAL', `Error in modal ${interaction.customId}: ${err.message}`);
-            return false;
-          });
-          if (handled) return;
-        }
+      const handler = ctx.modalHandlers?.find(interaction.customId);
+      if (!handler) return;
+      try {
+        await handler(interaction, ctx);
+      } catch (err) {
+        logger.error('MODAL', `Error in modal ${interaction.customId}: ${err.message}`);
+        console.error(err);
+        await replyError(interaction, 'Something went wrong submitting your form. Please try again.');
       }
       return;
     }
 
+    // --- Slash commands ------------------------------------------------------
     if (!interaction.isChatInputCommand()) return;
 
     const cmd = registry.get(interaction.commandName);
     if (!cmd) return;
-
-    logger.info('CMD', `/${interaction.commandName} used by ${interaction.user.tag}`);
 
     if (!cmd.skipCooldown) {
       const remaining = cooldowns.check(interaction.user.id, interaction.commandName);
@@ -33,6 +40,8 @@ module.exports = {
         return replyError(interaction, `⏳ Please wait **${remaining}s** before using \`/${interaction.commandName}\` again.`);
       }
     }
+
+    logger.info('CMD', `/${interaction.commandName} used by ${interaction.user.tag}`);
 
     try {
       await cmd.execute(interaction, ctx);
