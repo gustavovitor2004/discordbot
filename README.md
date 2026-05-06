@@ -36,7 +36,7 @@ The official Discord bot for [**Trophi.gg**](https://trophi.gg) — the home for
 
 This bot is the central automation layer for the Trophi.gg Discord community. It handles **onboarding**, **feedback collection**, **forum-tag routing**, and **structured logging** — and is built on a modular auto-loading architecture so new commands and events drop in without touching the core.
 
-The bot follows the phased plan defined in [`DISCORD_SERVER.md`](https://github.com/gustavovitor2004/discordbot/blob/main/DISCORD_SERVER.md) and is currently in the **Pre-Launch** phase, focused on community foundations before the public release of the platform.
+The bot follows the phased plan defined in [`DISCORD_SERVER.md`](DISCORD_SERVER.md) and is currently in the **Pre-Launch** phase, focused on community foundations before the public release of the platform.
 
 ---
 
@@ -319,7 +319,7 @@ See [`src/commands/staff/feedback.js`](src/commands/staff/feedback.js) for a ful
 
 ## 🗺️ Roadmap
 
-This bot follows the phased plan in [`DISCORD_SERVER.md`](https://github.com/gustavovitor2004/discordbot/blob/main/DISCORD_SERVER.md).
+This bot follows the phased plan in [`DISCORD_SERVER.md`](DISCORD_SERVER.md).
 
 - [x] **Pre-Launch** — onboarding, feedback flow, forum mentions, channel logging, auto-loader architecture
 - [ ] **MVP (Early Access)** — `/poll`, `/weekly-topic`, auto-thread on `#achievement-help`
