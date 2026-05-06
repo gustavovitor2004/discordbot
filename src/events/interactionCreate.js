@@ -1,5 +1,6 @@
 const cooldowns = require('../utils/cooldowns');
 const { replyError } = require('../utils/embeds');
+const { safeErrorMessage, safeUserText } = require('../utils/safeText');
 const config = require('../../config.json');
 
 module.exports = {
@@ -21,8 +22,8 @@ module.exports = {
       try {
         await handler(interaction, ctx);
       } catch (err) {
-        logger.error('MODAL', `Error in modal ${interaction.customId}: ${err.message}`);
-        console.error(err);
+        logger.error('MODAL', `Error in modal ${safeUserText(interaction.customId, 100)}: ${safeErrorMessage(err)}`);
+        console.error(err); // full stack only to local console, never to Discord channel
         await replyError(interaction, 'Something went wrong submitting your form. Please try again.');
       }
       return;
@@ -41,12 +42,12 @@ module.exports = {
       }
     }
 
-    logger.info('CMD', `/${interaction.commandName} used by ${interaction.user.tag}`);
+    logger.info('CMD', `/${interaction.commandName} used by ${safeUserText(interaction.user.tag, 64)}`);
 
     try {
       await cmd.execute(interaction, ctx);
     } catch (err) {
-      logger.error('CMD', `Error in /${interaction.commandName}: ${err.message}`);
+      logger.error('CMD', `Error in /${interaction.commandName}: ${safeErrorMessage(err)}`);
       console.error(err);
       await replyError(interaction, 'An unexpected error occurred. Please try again later.');
     }

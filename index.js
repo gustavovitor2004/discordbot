@@ -12,6 +12,7 @@ const {
 const config = require('./config.json');
 const logger = require('./src/utils/logger');
 const { loadCommands, loadEvents } = require('./src/loader');
+const { safeErrorMessage } = require('./src/utils/safeText');
 
 // --- Startup validation -----------------------------------------------------
 const TOKEN = process.env.DISCORD_TOKEN;
@@ -47,17 +48,19 @@ const ctx = { client, config, logger, registry };
 loadEvents(client, path.join(__dirname, 'src', 'events'), ctx);
 
 // --- Global error safety net ------------------------------------------------
-client.on('error', err => logger.error('CLIENT', err?.message || String(err)));
-client.on('warn', warn => logger.warn('CLIENT', warn));
+// All paths route through safeErrorMessage to scrub potential token leakage
+// from third-party error strings before they reach Discord channels.
+client.on('error', err => logger.error('CLIENT', safeErrorMessage(err)));
+client.on('warn', warn => logger.warn('CLIENT', safeErrorMessage(warn)));
 
 process.on('unhandledRejection', err => {
   console.error('[UNHANDLED REJECTION]', err);
-  logger.error('UNHANDLED', err?.message || String(err));
+  logger.error('UNHANDLED', safeErrorMessage(err));
 });
 
 process.on('uncaughtException', err => {
   console.error('[UNCAUGHT EXCEPTION]', err);
-  logger.error('UNCAUGHT', err?.message || String(err));
+  logger.error('UNCAUGHT', safeErrorMessage(err));
   // Stay alive — PM2 / supervisor will decide if a restart is warranted.
 });
 
@@ -79,7 +82,8 @@ process.on('SIGINT', () => {
     await rest.put(Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID), { body });
     console.log(`[COMMANDS] Registered ${body.length} slash commands`);
   } catch (err) {
-    console.error('[COMMANDS ERROR]', err);
+    // Use safe scrubbing — REST errors can include the Authorization header.
+    console.error('[COMMANDS ERROR]', safeErrorMessage(err));
   }
 })();
 

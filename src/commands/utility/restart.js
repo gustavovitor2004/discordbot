@@ -15,9 +15,11 @@ module.exports = {
   skipCooldown: true,
 
   async execute(interaction, { client, logger }) {
-    // Re-check at runtime even though we set default permissions —
-    // setDefaultMemberPermissions is a UI hint, server admins can override.
-    if (!interaction.member.permissions.has(PermissionFlagsBits.Administrator)) {
+    // Defense-in-depth: refuse if invoked outside a guild context (e.g. DM)
+    // or by a member without Administrator. setDefaultMemberPermissions is
+    // only a UI hint — server admins can override per-command, so always
+    // re-check at runtime.
+    if (!interaction.inGuild() || !interaction.member?.permissions?.has(PermissionFlagsBits.Administrator)) {
       return replyError(interaction, 'You need **Administrator** permission to use this command.');
     }
 

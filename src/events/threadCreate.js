@@ -1,6 +1,7 @@
 const { ChannelType, EmbedBuilder } = require('discord.js');
 const config = require('../../config.json');
 const { COLORS } = require('../utils/embeds');
+const { safeUserText } = require('../utils/safeText');
 
 function isValidForumThread(thread) {
   const forum = thread.parent;
@@ -21,9 +22,11 @@ module.exports = {
       .map(id => forum.availableTags.find(t => t.id === id)?.name?.trim())
       .filter(Boolean);
 
-    logger.event('FORUM', `New thread "${thread.name}" in #${forum.name}`, [
+    // Thread name and forum name are user-controlled — escape before logging
+    // to prevent markdown link injection / phishing in #auto-log.
+    logger.event('FORUM', `New thread "${safeUserText(thread.name, 200)}" in #${safeUserText(forum.name, 100)}`, [
       { name: 'Author', value: `<@${thread.ownerId}>`, inline: true },
-      { name: 'Tags', value: appliedTags.join(', ') || '_none_', inline: true },
+      { name: 'Tags', value: appliedTags.map(t => safeUserText(t, 50)).join(', ') || '_none_', inline: true },
       { name: 'Link', value: `<#${thread.id}>`, inline: false }
     ]);
 
@@ -34,7 +37,10 @@ module.exports = {
       const value = config.tagMentions?.[tag];
       if (!value) continue;
       const userIds = Array.isArray(value) ? value : [value];
-      userIds.forEach(id => allUserIds.add(id));
+      // Validate user IDs are snowflakes — reject any malformed config entry.
+      for (const id of userIds) {
+        if (/^\d{17,20}$/.test(id)) allUserIds.add(id);
+      }
       matchedTags.push(tag);
     }
 
@@ -42,7 +48,7 @@ module.exports = {
 
     const userIds = [...allUserIds];
     const mentions = userIds.map(id => `<@${id}>`).join(' ');
-    const tagList = matchedTags.map(t => `**${t}**`).join(', ');
+    const tagList = matchedTags.map(t => `**${safeUserText(t, 50)}**`).join(', ');
 
     const embed = new EmbedBuilder()
       .setColor(COLORS.primary)
@@ -58,7 +64,8 @@ module.exports = {
     await thread.send({
       content: mentions,
       embeds: [embed],
-      allowedMentions: { users: userIds }
+      // Strict allowlist: only the configured staff IDs can be pinged here.
+      allowedMentions: { users: userIds, parse: [] }
     }).catch(err => logger.error('FORUM', `Failed to send notification: ${err.message}`));
   }
 };

@@ -7,6 +7,7 @@ const {
   MessageFlags
 } = require('discord.js');
 const { baseEmbed, successEmbed, replyError, COLORS } = require('../../utils/embeds');
+const { safeUserText } = require('../../utils/safeText');
 const config = require('../../../config.json');
 
 const TYPES = {
@@ -110,11 +111,19 @@ module.exports = {
       return replyError(interaction, 'Could not reach the feedback channel.');
     }
 
-    const embed = baseEmbed(`${meta.label} — ${title}`, meta.color)
-      .setDescription(description)
-      .addFields({ name: 'Context', value: context || '_(none provided)_', inline: false })
+    // Escape user-supplied markdown — title/description/context all originate
+    // from the modal. Embeds don't ping, but a malicious user could embed
+    // [phishing](https://evil.tld) links that look legitimate to staff.
+    const embed = baseEmbed(`${meta.label} — ${safeUserText(title, 200)}`, meta.color)
+      .setDescription(safeUserText(description, 4000))
+      .addFields({
+        name: 'Context',
+        value: context ? safeUserText(context, 1024) : '_(none provided)_',
+        inline: false
+      })
       .setAuthor({
-        name: `${interaction.user.tag} (${interaction.user.id})`,
+        // user.tag is escaped because display names since 2023 allow markdown chars.
+        name: `${safeUserText(interaction.user.tag, 64)} (${interaction.user.id})`,
         iconURL: interaction.user.displayAvatarURL({ dynamic: true })
       });
 

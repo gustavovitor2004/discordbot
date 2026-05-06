@@ -1,6 +1,7 @@
 const { EmbedBuilder } = require('discord.js');
 const config = require('../../config.json');
 const { COLORS } = require('../utils/embeds');
+const { safeUserText } = require('../utils/safeText');
 
 module.exports = {
   name: 'guildMemberAdd',
@@ -13,7 +14,9 @@ module.exports = {
     const link = (id, fallback) => (id ? `<#${id}>` : `\`${fallback}\``);
     const tagline = config.branding?.tagline || 'Track. Master. Achieve.';
 
-    logger.event('JOIN', `${member.user.tag} joined the server`, [
+    // user.tag is shaped by Discord but display-name changes (2023+) allow
+    // more characters — escape before logging to prevent markdown spoofing.
+    logger.event('JOIN', `${safeUserText(member.user.tag, 64)} joined the server`, [
       { name: 'User', value: `<@${member.id}>`, inline: true },
       { name: 'Account Created', value: `<t:${Math.floor(member.user.createdTimestamp / 1000)}:R>`, inline: true },
       { name: 'Member Count', value: `${member.guild.memberCount}`, inline: true }
@@ -25,9 +28,12 @@ module.exports = {
     const channel = await member.client.channels.fetch(welcomeChannelId).catch(() => null);
     if (!channel || !channel.isTextBased()) return;
 
+    // Embed title is user-supplied via username — escape for safety.
+    const safeName = safeUserText(member.user.username, 32) || 'friend';
+
     const embed = new EmbedBuilder()
       .setColor(COLORS.primary)
-      .setTitle(`👋 Welcome, ${member.user.username}!`)
+      .setTitle(`👋 Welcome, ${safeName}!`)
       .setDescription(
         `Welcome to **Trophi.gg — Official Server**, the home for completionists and trophy hunters.\n\n` +
         `*${tagline}* 🏆`
@@ -54,7 +60,8 @@ module.exports = {
     await channel.send({
       content: `<@${member.id}>`,
       embeds: [embed],
-      allowedMentions: { users: [member.id] }
-    }).catch(err => console.error('[WELCOME ERROR]', err));
+      // Strictly: only ping the new member, never anyone else.
+      allowedMentions: { users: [member.id], parse: [] }
+    }).catch(err => logger.error('WELCOME', `Failed to send welcome: ${err.message}`));
   }
 };
