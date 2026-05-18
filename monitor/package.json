@@ -1,0 +1,32 @@
+{
+  "name": "trophibot-monitor",
+  "version": "1.0.0",
+  "description": "Real-time monitoring dashboard for the Trophibot Discord bot. Tracks WebSocket ping, uptime, guild count, forum tag detections (Site/Server), and recent events, exposed via a local web dashboard over WebSocket.",
+  "main": "monitor.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node monitor.js",
+    "dev": "node --watch monitor.js",
+    "pm2:start": "pm2 start monitor.js --name trophibot-monitor",
+    "pm2:restart": "pm2 restart trophibot-monitor",
+    "pm2:logs": "pm2 logs trophibot-monitor"
+  },
+  "keywords": [
+    "discord",
+    "bot",
+    "monitor",
+    "dashboard",
+    "trophi",
+    "discord.js"
+  ],
+  "author": "gustavovitor2004",
+  "license": "MIT",
+  "type": "commonjs",
+  "dependencies": {
+    "discord.js": "^14.25.1",
+    "dotenv": "^17.3.1",
+    "ws": "^8.18.0"
+  }
+}
