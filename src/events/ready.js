@@ -6,7 +6,7 @@ const { COLORS } = require('../utils/embeds');
 const restartFile = path.join(__dirname, '..', '..', 'restart.json');
 
 module.exports = {
-  name: 'ready',
+  name: 'clientReady',
   once: true,
 
   async execute(client, { logger }) {

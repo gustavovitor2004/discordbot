@@ -1,6 +1,7 @@
 const cooldowns = require('../utils/cooldowns');
 const { replyError } = require('../utils/embeds');
 const { safeErrorMessage, safeUserText } = require('../utils/safeText');
+const { pushToMonitor } = require('../utils/monitorClient');
 const config = require('../../config.json');
 
 module.exports = {
@@ -42,13 +43,17 @@ module.exports = {
       }
     }
 
-    logger.info('CMD', `/${interaction.commandName} used by ${safeUserText(interaction.user.tag, 64)}`);
+    const userTag = safeUserText(interaction.user.tag, 64);
+    logger.info('CMD', `/${interaction.commandName} used by ${userTag}`);
+    pushToMonitor('info', `/${interaction.commandName} used by ${userTag}`);
 
     try {
       await cmd.execute(interaction, ctx);
     } catch (err) {
-      logger.error('CMD', `Error in /${interaction.commandName}: ${safeErrorMessage(err)}`);
+      const errMsg = safeErrorMessage(err);
+      logger.error('CMD', `Error in /${interaction.commandName}: ${errMsg}`);
       console.error(err);
+      pushToMonitor('error', `Error in /${interaction.commandName}: ${errMsg}`);
       await replyError(interaction, 'An unexpected error occurred. Please try again later.');
     }
   }

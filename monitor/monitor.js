@@ -29,6 +29,7 @@ require('dotenv').config();
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const { spawn } = require('child_process');
 const { WebSocketServer } = require('ws');
 const {
   Client,
@@ -270,6 +271,57 @@ setInterval(() => {
 const dashboardPath = path.join(__dirname, 'dashboard.html');
 
 const server = http.createServer((req, res) => {
+  // POST /api/restart — restarts the main bot via PM2 (localhost only).
+  if (req.method === 'POST' && req.url === '/api/restart') {
+    const remote = req.socket.remoteAddress;
+    const isLocal = remote === '127.0.0.1' || remote === '::1' || remote === '::ffff:127.0.0.1';
+    if (!isLocal) {
+      res.writeHead(403, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ ok: false, error: 'Forbidden' }));
+      return;
+    }
+    pushActivity('warn', '🔄 Bot restart requested from dashboard');
+    const proc = spawn('pm2', ['restart', 'discordbot'], {
+      shell: true,
+      detached: true,
+      windowsHide: true,
+      stdio: 'ignore'
+    });
+    proc.unref();
+    proc.on('error', (err) => {
+      pushActivity('error', `Restart failed: ${err.message}`);
+    });
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ ok: true }));
+    return;
+  }
+
+  // POST /api/event — receives events pushed by the main bot process (localhost only).
+  if (req.method === 'POST' && req.url === '/api/event') {
+    const remote = req.socket.remoteAddress;
+    const isLocal = remote === '127.0.0.1' || remote === '::1' || remote === '::ffff:127.0.0.1';
+    if (!isLocal) {
+      res.writeHead(403, { 'Content-Type': 'text/plain' });
+      res.end('Forbidden');
+      return;
+    }
+    let body = '';
+    req.on('data', chunk => { body += String(chunk).slice(0, 2048); });
+    req.on('end', () => {
+      try {
+        const { level, message } = JSON.parse(body);
+        const safeLevel = ['info', 'success', 'warn', 'error', 'alert'].includes(level) ? level : 'info';
+        if (message) pushActivity(safeLevel, String(message).slice(0, 500));
+        res.writeHead(200, { 'Content-Type': 'text/plain' });
+        res.end('ok');
+      } catch {
+        res.writeHead(400, { 'Content-Type': 'text/plain' });
+        res.end('Bad Request');
+      }
+    });
+    return;
+  }
+
   if (req.method !== 'GET') {
     res.writeHead(405, { 'Content-Type': 'text/plain' });
     res.end('Method Not Allowed');

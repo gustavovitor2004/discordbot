@@ -282,6 +282,129 @@
       font-size: 12px;
     }
 
+    /* Restart button */
+    .btn-restart {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 18px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      border: 1px solid rgba(239,91,91,0.4);
+      background: rgba(239,91,91,0.10);
+      color: var(--red);
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s, transform 0.1s;
+      user-select: none;
+    }
+    .btn-restart:hover:not(:disabled) {
+      background: rgba(239,91,91,0.20);
+      border-color: var(--red);
+    }
+    .btn-restart:active:not(:disabled) { transform: scale(0.97); }
+    .btn-restart:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .btn-restart.loading {
+      color: var(--yellow);
+      border-color: rgba(245,176,65,0.4);
+      background: rgba(245,176,65,0.10);
+    }
+
+    /* Confirmation modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.65);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px 32px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+      text-align: center;
+    }
+    .modal-icon {
+      font-size: 36px;
+      margin-bottom: 12px;
+    }
+    .modal h3 {
+      margin: 0 0 8px 0;
+      font-size: 18px;
+      font-weight: 700;
+    }
+    .modal p {
+      margin: 0 0 24px 0;
+      color: var(--text-dim);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+    .btn-cancel {
+      padding: 9px 22px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      border: 1px solid var(--border);
+      background: var(--panel-2);
+      color: var(--text-dim);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-cancel:hover { background: var(--border); color: var(--text); }
+    .btn-confirm {
+      padding: 9px 22px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      border: 1px solid rgba(239,91,91,0.5);
+      background: rgba(239,91,91,0.15);
+      color: var(--red);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-confirm:hover { background: rgba(239,91,91,0.28); }
+
+    /* Toast notification */
+    .toast {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 11px 20px;
+      font-size: 13px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      opacity: 0;
+      transition: opacity 0.2s, transform 0.2s;
+      z-index: 200;
+      pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .toast.success { border-color: rgba(61,220,151,0.4); color: var(--green); }
+    .toast.error   { border-color: rgba(239,91,91,0.4);  color: var(--red);   }
+
     .row-2 {
       display: grid;
       grid-template-columns: 2fr 1fr;
@@ -304,11 +427,37 @@
         <div class="brand-subtitle" id="identity">connecting...</div>
       </div>
     </div>
-    <div class="conn-pill disconnected" id="ws-pill">
-      <span class="dot"></span>
-      <span id="ws-status-text">Dashboard offline</span>
+    <div style="display:flex; align-items:center; gap:12px;">
+      <div class="conn-pill disconnected" id="ws-pill">
+        <span class="dot"></span>
+        <span id="ws-status-text">Dashboard offline</span>
+      </div>
+      <button class="btn-restart" id="btn-restart" title="Restart Trophibot via PM2">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+          <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+        </svg>
+        Restart Bot
+      </button>
     </div>
   </header>
+
+  <!-- Confirmation modal -->
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal">
+      <div class="modal-icon">⚠️</div>
+      <h3>Restart Trophibot?</h3>
+      <p>This will run <code style="background:var(--panel-2);padding:2px 6px;border-radius:4px;font-size:12px;">pm2 restart discordbot</code>.<br>
+         The bot will be offline for a few seconds.</p>
+      <div class="modal-actions">
+        <button class="btn-cancel" id="btn-cancel">Cancel</button>
+        <button class="btn-confirm" id="btn-confirm">Yes, restart</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
 
   <main>
 
@@ -534,6 +683,67 @@
         document.getElementById('uptime').textContent = formatUptime(snapshot.connectedAt);
       }
     }, 1000);
+
+    // ----- Restart button ----------------------------------------------------
+
+    const btnRestart  = document.getElementById('btn-restart');
+    const modalOverlay = document.getElementById('modal-overlay');
+    const btnCancel   = document.getElementById('btn-cancel');
+    const btnConfirm  = document.getElementById('btn-confirm');
+    const toast       = document.getElementById('toast');
+
+    let toastTimer = null;
+
+    function showToast(msg, type) {
+      toast.textContent = '';
+      const icon = document.createTextNode(type === 'success' ? '✅ ' : '❌ ');
+      toast.appendChild(icon);
+      toast.appendChild(document.createTextNode(msg));
+      toast.className = `toast ${type} show`;
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => { toast.className = 'toast'; }, 3500);
+    }
+
+    function openModal()  { modalOverlay.classList.add('open');    }
+    function closeModal() { modalOverlay.classList.remove('open'); }
+
+    btnRestart.addEventListener('click', openModal);
+    btnCancel.addEventListener('click', closeModal);
+    modalOverlay.addEventListener('click', (e) => {
+      if (e.target === modalOverlay) closeModal();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeModal();
+    });
+
+    btnConfirm.addEventListener('click', async () => {
+      closeModal();
+      btnRestart.disabled = true;
+      btnRestart.classList.add('loading');
+      btnRestart.querySelector('span') && (btnRestart.querySelector('span').textContent = 'Restarting…');
+      // Replace button text
+      const textNodes = [...btnRestart.childNodes].filter(n => n.nodeType === 3);
+      if (textNodes.length) textNodes[textNodes.length - 1].textContent = ' Restarting…';
+
+      try {
+        const res = await fetch('/api/restart', { method: 'POST' });
+        const json = await res.json();
+        if (json.ok) {
+          showToast('Restart triggered — bot will be back shortly', 'success');
+        } else {
+          showToast(`Restart failed: ${json.error || 'unknown error'}`, 'error');
+        }
+      } catch (err) {
+        showToast('Could not reach monitor server', 'error');
+      } finally {
+        setTimeout(() => {
+          btnRestart.disabled = false;
+          btnRestart.classList.remove('loading');
+          const nodes = [...btnRestart.childNodes].filter(n => n.nodeType === 3);
+          if (nodes.length) nodes[nodes.length - 1].textContent = ' Restart Bot';
+        }, 5000); // prevent spam — re-enables after 5s
+      }
+    });
 
     // Boot
     connect();
